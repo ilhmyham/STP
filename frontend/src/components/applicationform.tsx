@@ -1,5 +1,6 @@
 "use client";
 
+import Cookies from "js-cookie";
 import type React from "react";
 import axios from "axios";
 import Link from "next/link";
@@ -54,6 +55,7 @@ export default function ApplicationForm() {
 
   const [formData, setFormData] = useState({
     nama: "",
+    user_id: "",
     tempat_lahir: "",
     tanggal_lahir: undefined as Date | undefined,
     jenis_kelamin: "",
@@ -98,6 +100,16 @@ export default function ApplicationForm() {
     };
 
     fetchOptions();
+  }, []);
+
+  useEffect(() => {
+    const uid = Cookies.get("userId");
+    if (uid) {
+      setFormData((prev) => ({
+        ...prev,
+        user_id: uid,
+      }));
+    }
   }, []);
 
   const handleDateChange = (
@@ -150,7 +162,7 @@ export default function ApplicationForm() {
 
     const formDataToSend = new FormData();
 
-    // Sesuaikan nama field sesuai dengan Laravel controller
+    // Kirim semua field sesuai Laravel
     formDataToSend.append("nama", formData.nama);
     formDataToSend.append(
       "tempat_lahir",
@@ -184,7 +196,7 @@ export default function ApplicationForm() {
     formDataToSend.append(
       "jenjang_pendidikan",
       formData.jenjang_pendidikan
-    ); // sesuai validator
+    );
     formDataToSend.append(
       "fakultas",
       formData.fakultas
@@ -209,9 +221,13 @@ export default function ApplicationForm() {
     formDataToSend.append(
       "bidang_peminatan",
       formData.bidang_peminatan
-    ); // sesuai validator
+    );
+    formDataToSend.append(
+      "user_id",
+      formData.user_id
+    ); // ✅ Jangan lupa user_id
 
-    // File upload sesuai nama field Laravel
+    // File upload
     if (fileCV)
       formDataToSend.append("cv", fileCV);
     if (fileSurat)
@@ -230,12 +246,6 @@ export default function ApplicationForm() {
         fileDokumen
       );
 
-    // Debugging output
-    // console.log("=== Data yang akan dikirim ===");
-    // for (const pair of formDataToSend.entries()) {
-    //   console.log(`${pair[0]}:`, pair[1]);
-    // }
-
     try {
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/pendaftars`,
@@ -243,7 +253,7 @@ export default function ApplicationForm() {
         {
           headers: {
             "Content-Type": "multipart/form-data",
-            Accept: "application/json", // penting agar error Laravel dikembalikan dalam JSON
+            Accept: "application/json",
           },
         }
       );
@@ -252,28 +262,36 @@ export default function ApplicationForm() {
         setShowSuccessPopup(true);
       } else {
         console.error("Formulir gagal dikirim");
+        alert("Formulir gagal dikirim.");
       }
     } catch (error: any) {
-      if (
-        error.response &&
-        error.response.status === 422
-      ) {
-        console.error(
-          "Validasi Gagal:",
-          error.response.data.errors
-        ); // TAMBAH INI
-        alert(
-          "Validasi gagal: " +
-            JSON.stringify(
-              error.response.data.errors,
-              null,
-              2
-            )
-        );
+      if (error.response) {
+        const status = error.response.status;
+        const data = error.response.data;
+
+        if (status === 422 && data.errors) {
+          // ✅ Validasi Laravel
+          console.error(
+            "Validasi Gagal:",
+            data.errors
+          );
+          alert(
+            "Validasi gagal:\n" +
+              JSON.stringify(data.errors, null, 2)
+          );
+        } else {
+          // ✅ Error bukan validasi
+          console.error("Server error:", data);
+          alert(
+            "Terjadi kesalahan pada server:\n" +
+              JSON.stringify(data, null, 2)
+          );
+        }
       } else {
-        console.error(
-          "Error saat mengirim formulir:",
-          error
+        // ✅ Error tanpa response (misalnya jaringan)
+        console.error("Error jaringan:", error);
+        alert(
+          "Terjadi kesalahan jaringan atau server tidak merespons."
         );
       }
     } finally {

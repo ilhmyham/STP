@@ -3,6 +3,7 @@
 import React, {
   useState,
   useEffect,
+  useRef,
 } from "react"; // <-- ini sudah benar
 import { useParams } from "next/navigation"; // Untuk mengambil ID dari URL path
 import axios from "axios";
@@ -96,6 +97,10 @@ interface Peserta {
 }
 
 export const InternshipDetail = () => {
+  const fileInputRef =
+    useRef<HTMLInputElement | null>(null); // Ref untuk input file
+  const [fileName, setFileName] =
+    useState<string>(""); // Menyimpan nama file yang dipilih
   const [uploadedFiles, setUploadedFiles] =
     useState<UploadedFiles>({
       cv: { name: "", size: "" },
@@ -106,6 +111,21 @@ export const InternshipDetail = () => {
       surat_penilaian: { name: "", size: "" },
       sertifikat_magang: { name: "", size: "" },
     });
+
+  // Membuat refs untuk setiap file input
+  const suratBalasanInputRef =
+    useRef<HTMLInputElement | null>(null);
+  const suratPenilaianInputRef =
+    useRef<HTMLInputElement | null>(null);
+  const sertifikatMagangInputRef =
+    useRef<HTMLInputElement | null>(null);
+
+  const suratBalasanUpdateInputRef =
+    useRef<HTMLInputElement | null>(null);
+  const suratPenilaianUpdateInputRef =
+    useRef<HTMLInputElement | null>(null);
+  const sertifikatMagangUpdateInputRef =
+    useRef<HTMLInputElement | null>(null);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -121,7 +141,9 @@ export const InternshipDetail = () => {
     ); // Format dengan bahasa Indonesia
   };
 
+  const params = useParams();
   const { id } = useParams(); // Ini akan menangkap ID dari URL yang memiliki format [id].tsx
+  const id_peserta = params?.id as string;
   const [data, setData] =
     useState<Peserta | null>(null);
   const [loading, setLoading] = useState(true);
@@ -214,6 +236,124 @@ export const InternshipDetail = () => {
   if (loading) {
     return <div>Loading...</div>; // Tampilkan loading jika data sedang dimuat
   }
+
+  const handleFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+    type: string
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    if (type === "surat_balasan") {
+      formData.append("surat_balasan", file);
+    } else if (type === "surat_penilaian") {
+      formData.append("surat_penilaian", file);
+    } else if (type === "sertifikat_magang") {
+      formData.append("sertifikat_magang", file);
+    }
+
+    // Add participant ID to form data
+    formData.append("id_peserta", id_peserta);
+
+    let apiUrl = "";
+    if (type === "surat_balasan") {
+      apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/surat-balasan`;
+    } else if (type === "surat_penilaian") {
+      apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/surat-penilaian`;
+    } else if (type === "sertifikat_magang") {
+      apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/sertifikat`;
+    }
+
+    try {
+      const response = await axios.post(
+        apiUrl,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      console.log(
+        `${type} uploaded successfully:`,
+        response.data
+      );
+    } catch (error) {
+      console.error(
+        "Error uploading file:",
+        error
+      );
+    }
+  };
+
+  const handleUpdateFile = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+    type: string
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("_method", "PUT"); // emulasi PUT method
+    formData.append(type, file);
+
+    const apiBase =
+      process.env.NEXT_PUBLIC_API_URL;
+
+    let apiUrl = "";
+    if (type === "surat_balasan") {
+      apiUrl = `${apiBase}/surat-balasan/${data?.surat_balasan?.id}`;
+    } else if (type === "surat_penilaian") {
+      apiUrl = `${apiBase}/surat-penilaian/${data?.surat_penilaian?.id}`;
+    } else if (type === "sertifikat_magang") {
+      apiUrl = `${apiBase}/sertifikat/${data?.sertifikat_magang?.id}`;
+    }
+
+    try {
+      const response = await axios.post(
+        apiUrl,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      alert("Dokumen berhasil diperbarui.");
+      console.log(
+        "Respon update:",
+        response.data
+      );
+      window.location.reload(); // Refresh data
+    } catch (error) {
+      console.error(
+        "Gagal memperbarui dokumen:",
+        error
+      );
+      alert("Gagal memperbarui dokumen.");
+    }
+  };
+
+  const handleUploadClick = (type: string) => {
+    if (
+      type === "surat_balasan" &&
+      suratBalasanInputRef.current
+    ) {
+      suratBalasanInputRef.current.click();
+    } else if (
+      type === "surat_penilaian" &&
+      suratPenilaianInputRef.current
+    ) {
+      suratPenilaianInputRef.current.click();
+    } else if (
+      type === "sertifikat_magang" &&
+      sertifikatMagangInputRef.current
+    ) {
+      sertifikatMagangInputRef.current.click();
+    }
+  };
 
   return (
     <div className='bg-[#F4F3F6] min-h-screen flex'>
@@ -532,10 +672,9 @@ export const InternshipDetail = () => {
 
               <Button
                 className='text-sm font-semibold min-w-[300px] px-6 py-2 bg-[#EABE4F] hover:bg-yellow-500 text-white rounded-xl flex items-center justify-center gap-2'
-                onClick={() => {
-                  // setActionType("ubah");
-                  // setShowModal(true);
-                }}
+                onClick={() =>
+                  suratBalasanUpdateInputRef.current?.click()
+                }
               >
                 <img
                   src='/icons/edit.svg'
@@ -543,11 +682,26 @@ export const InternshipDetail = () => {
                   className='w-5 h-5'
                 />
                 Ubah Dokumen
+                <input
+                  ref={suratBalasanUpdateInputRef}
+                  type='file'
+                  style={{ display: "none" }}
+                  onChange={(e) =>
+                    handleUpdateFile(
+                      e,
+                      "surat_balasan"
+                    )
+                  }
+                />
               </Button>
 
               <Button
                 className='text-sm font-semibold min-w-[300px] px-6 py-2 bg-[#2658AC] hover:bg-blue-700 text-white rounded-xl flex items-center justify-center gap-2'
-                // onClick={}
+                onClick={() =>
+                  handleUploadClick(
+                    "surat_balasan"
+                  )
+                } // Menggunakan tipe untuk masing-masing file
               >
                 <img
                   src='/icons/upload.svg'
@@ -555,6 +709,17 @@ export const InternshipDetail = () => {
                   className='w-5 h-5'
                 />
                 Unggah Dokumen
+                <input
+                  ref={suratBalasanInputRef}
+                  type='file'
+                  style={{ display: "none" }}
+                  onChange={(e) =>
+                    handleFileChange(
+                      e,
+                      "surat_balasan"
+                    )
+                  }
+                />
               </Button>
             </div>
           </div>
@@ -592,34 +757,6 @@ export const InternshipDetail = () => {
                 onClick={() => {
                   console.log(
                     "URL:",
-                    uploadedFiles
-                      .sertifikat_magang.url
-                  );
-                  if (
-                    uploadedFiles
-                      .sertifikat_magang.url
-                  ) {
-                    window.open(
-                      uploadedFiles
-                        .sertifikat_magang.url,
-                      "_blank"
-                    );
-                  }
-                }}
-              >
-                <img
-                  src='/icons/show.svg'
-                  alt='lihat'
-                  className='w-5 h-5'
-                />
-                Lihat Dokumen
-              </Button>
-
-              <Button
-                className='text-sm font-semibold min-w-[300px] px-6 py-2 bg-[#EABE4F] hover:bg-yellow-500 text-white rounded-xl flex items-center justify-center gap-2'
-                onClick={() => {
-                  console.log(
-                    "URL:",
                     uploadedFiles.surat_penilaian
                       .url
                   );
@@ -636,19 +773,47 @@ export const InternshipDetail = () => {
                 }}
               >
                 <img
+                  src='/icons/show.svg'
+                  alt='lihat'
+                  className='w-5 h-5'
+                />
+                Lihat Dokumen
+              </Button>
+
+              <Button
+                className='text-sm font-semibold min-w-[300px] px-6 py-2 bg-[#EABE4F] hover:bg-yellow-500 text-white rounded-xl flex items-center justify-center gap-2'
+                onClick={() =>
+                  suratPenilaianUpdateInputRef.current?.click()
+                }
+              >
+                <img
                   src='/icons/edit.svg'
                   alt='ubah'
                   className='w-5 h-5'
                 />
                 Ubah Dokumen
+                <input
+                  ref={
+                    suratPenilaianUpdateInputRef
+                  }
+                  type='file'
+                  style={{ display: "none" }}
+                  onChange={(e) =>
+                    handleUpdateFile(
+                      e,
+                      "surat_penilaian"
+                    )
+                  }
+                />
               </Button>
 
               <Button
                 className='text-sm font-semibold min-w-[300px] px-6 py-2 bg-[#2658AC] hover:bg-blue-700 text-white rounded-xl flex items-center justify-center gap-2'
-                onClick={() => {
-                  // setActionType("unggah");
-                  // setShowModal(true);
-                }}
+                onClick={() =>
+                  handleUploadClick(
+                    "surat_penilaian"
+                  )
+                } // Menggunakan tipe untuk masing-masing file
               >
                 <img
                   src='/icons/upload.svg'
@@ -656,6 +821,17 @@ export const InternshipDetail = () => {
                   className='w-5 h-5'
                 />
                 Unggah Dokumen
+                <input
+                  ref={suratPenilaianInputRef}
+                  type='file'
+                  style={{ display: "none" }}
+                  onChange={(e) =>
+                    handleFileChange(
+                      e,
+                      "surat_penilaian"
+                    )
+                  }
+                />
               </Button>
             </div>
           </div>
@@ -692,7 +868,21 @@ export const InternshipDetail = () => {
               <Button
                 className='text-sm font-semibold min-w-[300px] px-6 py-2 bg-[#49CA7B] hover:bg-green-600 text-white rounded-xl flex items-center justify-center gap-2'
                 onClick={() => {
-                  // setShowModal(true);
+                  console.log(
+                    "URL:",
+                    uploadedFiles
+                      .sertifikat_magang.url
+                  );
+                  if (
+                    uploadedFiles
+                      .sertifikat_magang.url
+                  ) {
+                    window.open(
+                      uploadedFiles
+                        .sertifikat_magang.url,
+                      "_blank"
+                    );
+                  }
                 }}
               >
                 <img
@@ -705,25 +895,38 @@ export const InternshipDetail = () => {
 
               <Button
                 className='text-sm font-semibold min-w-[300px] px-6 py-2 bg-[#EABE4F] hover:bg-yellow-500 text-white rounded-xl flex items-center justify-center gap-2'
-                onClick={() => {
-                  // setActionType("ubah");
-                  // setShowModal(true);
-                }}
+                onClick={() =>
+                  sertifikatMagangUpdateInputRef.current?.click()
+                }
               >
                 <img
                   src='/icons/edit.svg'
                   alt='ubah'
                   className='w-5 h-5'
                 />
-                Ubah Dokumen
+                Ubah Dokumen perbaikan
+                <input
+                  ref={
+                    sertifikatMagangUpdateInputRef
+                  }
+                  type='file'
+                  style={{ display: "none" }}
+                  onChange={(e) =>
+                    handleUpdateFile(
+                      e,
+                      "sertifikat_magang"
+                    )
+                  }
+                />
               </Button>
 
               <Button
                 className='text-sm font-semibold min-w-[300px] px-6 py-2 bg-[#2658AC] hover:bg-blue-700 text-white rounded-xl flex items-center justify-center gap-2'
-                onClick={() => {
-                  // setActionType("unggah");
-                  // setShowModal(true);
-                }}
+                onClick={() =>
+                  handleUploadClick(
+                    "sertifikat_magang"
+                  )
+                } // Menggunakan tipe untuk masing-masing file
               >
                 <img
                   src='/icons/upload.svg'
@@ -731,6 +934,17 @@ export const InternshipDetail = () => {
                   className='w-5 h-5'
                 />
                 Unggah Dokumen
+                <input
+                  ref={sertifikatMagangInputRef}
+                  type='file'
+                  style={{ display: "none" }}
+                  onChange={(e) =>
+                    handleFileChange(
+                      e,
+                      "sertifikat_magang"
+                    )
+                  }
+                />
               </Button>
             </div>
           </div>

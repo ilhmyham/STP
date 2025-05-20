@@ -10,6 +10,7 @@ return new class extends Migration
     {
         Schema::create('pendaftars', function (Blueprint $table) {
             $table->id('id_pendaftar');
+            $table->foreignId('user_id')->unique()->constrained()->onDelete('cascade'); // relasi 1:1
             $table->string('nama');
             $table->string('tempat_lahir');
             $table->date('tanggal_lahir');
@@ -30,10 +31,12 @@ return new class extends Migration
             $table->enum('status', ['uncheck', 'diterima', 'ditolak'])->default('uncheck');
             $table->timestamps();
 
-            // Foreign key constraints (jika diperlukan)
+            // Foreign key constraints lainnya
             $table->foreign('jenjang_pendidikan')->references('id')->on('jenjang_pendidikans');
             $table->foreign('bidang_peminatan')->references('id')->on('bidang_peminatans');
         });
+
+
     }
 
     public function down()

@@ -13,6 +13,7 @@ class Pendaftar extends Model
     protected $primaryKey = 'id_pendaftar';
 
     protected $fillable = [
+    'user_id',
     'nama',
     'tempat_lahir',
     'tanggal_lahir',
@@ -58,7 +59,7 @@ class Pendaftar extends Model
 
     public function peserta()
     {
-        return $this->hasMany(Peserta::class, 'pendaftar_id', 'id_pendaftar');
+        return $this->hasOne(Peserta::class, 'pendaftar_id', 'id_pendaftar');
     }
 
     public function bidangPeminatan()
@@ -74,5 +75,10 @@ class Pendaftar extends Model
     public function berkas()
     {
         return $this->hasOne(BerkasPendaftar::class, 'id_pendaftar', 'id_pendaftar');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id', 'id');
     }
 }

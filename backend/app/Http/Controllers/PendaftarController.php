@@ -7,13 +7,14 @@ use Illuminate\Http\Request;
 use App\Models\BerkasPendaftar;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
+
 
 class PendaftarController extends Controller
 {
     public function index()
     {
-         $pendaftars = Pendaftar::with(['berkas', 'bidangPeminatan', 'jenjangPendidikan'])->get();
+         $pendaftars = Pendaftar::with(['berkas', 'bidangPeminatan', 'jenjangPendidikan', 'peserta'])->get();
 
     return response()->json([
         'success' => true,
@@ -22,68 +23,82 @@ class PendaftarController extends Controller
     }
 
 
-public function store(Request $request)
-{
-    $validator = Validator::make($request->all(), [
-        'nama' => 'required|string',
-        'tempat_lahir' => 'required|string',
-        'tanggal_lahir' => 'required|date',
-        'jenis_kelamin' => 'required|in:pria,wanita',
-        'email' => 'required|email|unique:pendaftars,email',
-        'noHP' => 'required|string',
-        'alamat_asal' => 'required|string',
-        'alamat_domisili' => 'required|string',
-        'asal_instansi' => 'required|string',
-        'jenjang_pendidikan' => 'required|integer',
-        'fakultas' => 'nullable|string',
-        'program_studi' => 'required|string',
-        'nim' => 'required|string',
-        'semester' => 'required|string',
-        'durasi' => 'required|string',
-        'periodic_mulai' => 'required|date',
-        'bidang_peminatan' => 'required|integer',
-        'cv' => 'required|file|mimes:pdf|max:2048',
-        'surat_rekomendasi' => 'required|file|mimes:pdf|max:2048',
-        'proposal' => 'required|file|mimes:pdf|max:2048',
-        'dok_pendukung' => 'nullable|file|mimes:pdf|max:2048',
-        'status' => 'sometimes|in:uncheck,diterima,ditolak'
-    ]);
+    public function store(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            // Validasi lainnya tetap sama ...
+            'nama' => 'required|string',
+            'tempat_lahir' => 'required|string',
+            'tanggal_lahir' => 'required|date',
+            'jenis_kelamin' => 'required|in:pria,wanita',
+            'email' => 'required|email|unique:pendaftars,email',
+            'noHP' => 'required|string',
+            'alamat_asal' => 'required|string',
+            'alamat_domisili' => 'required|string',
+            'asal_instansi' => 'required|string',
+            'jenjang_pendidikan' => 'required|integer|exists:jenjang_pendidikans,id',
+            'fakultas' => 'nullable|string',
+            'program_studi' => 'required|string',
+            'nim' => 'required|string',
+            'semester' => 'required|string',
+            'durasi' => 'required|string',
+            'periodic_mulai' => 'required|date',
+            'bidang_peminatan' => 'required|integer|exists:bidang_peminatans,id',
+            'cv' => 'required|file|mimes:pdf|max:2048',
+            'surat_rekomendasi' => 'required|file|mimes:pdf|max:2048',
+            'proposal' => 'required|file|mimes:pdf|max:2048',
+            'dok_pendukung' => 'nullable|file|mimes:pdf|max:2048',
+            'status' => 'sometimes|in:uncheck,diterima,ditolak',
+        ]);
 
-    if ($validator->fails()) {
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        // Ambil semua data kecuali file
+        $pendaftarData = $request->except(['cv', 'surat_rekomendasi', 'proposal', 'dok_pendukung']);
+
+        // Isi user_id dari user login, wajib ada
+        $pendaftarData['user_id'] = $request->input('user_id');
+
+        if (!$pendaftarData['user_id']) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User ID harus disertakan di request untuk testing tanpa login',
+            ], 422);
+        }
+
+        // Simpan data pendaftar
+        $pendaftar = Pendaftar::create($pendaftarData);
+
+        // Upload file ke storage
+        $cvPath = $request->file('cv')->store('berkas', 'public');
+        $rekomendasiPath = $request->file('surat_rekomendasi')->store('berkas', 'public');
+        $proposalPath = $request->file('proposal')->store('berkas', 'public');
+        $dokPendukungPath = $request->hasFile('dok_pendukung')
+            ? $request->file('dok_pendukung')->store('berkas', 'public')
+            : null;
+
+        // Simpan path file ke tabel berkas_pendaftars
+        $berkas = new BerkasPendaftar([
+            'cv' => $cvPath,
+            'surat_rekomendasi' => $rekomendasiPath,
+            'proposal' => $proposalPath,
+            'dok_pendukung' => $dokPendukungPath,
+        ]);
+        $berkas->id_pendaftar = $pendaftar->id_pendaftar;
+        $berkas->save();
+
         return response()->json([
-            'success' => false,
-            'errors' => $validator->errors()
-        ], 422);
+            'success' => true,
+            'data' => $pendaftar,
+            'berkas' => $berkas,
+        ], 201);
     }
 
-    // Simpan data pendaftar
-    $pendaftarData = $request->except(['cv', 'surat_rekomendasi','proposal', 'dok_pendukung']);
-    $pendaftar = Pendaftar::create($pendaftarData);
-
-    // Simpan file ke storage dan ambil path-nya
-    $cvPath = $request->file('cv')->store('berkas', 'public');
-    $rekomendasiPath = $request->file('surat_rekomendasi')->store('berkas', 'public');
-    $proposalPath = $request->file('proposal')->store('berkas', 'public');
-    $dokPendukungPath = $request->hasFile('dok_pendukung')
-        ? $request->file('dok_pendukung')->store('berkas', 'public')
-        : null;
-
-    // Simpan path file ke tabel berkas_pendaftars
-    $berkas = new BerkasPendaftar([
-        'cv' => $cvPath,
-        'surat_rekomendasi' => $rekomendasiPath,
-        'proposal' => $proposalPath,
-        'dok_pendukung' => $dokPendukungPath
-    ]);
-    $berkas->id_pendaftar = $pendaftar->id_pendaftar;
-    $berkas->save();
-
-    return response()->json([
-        'success' => true,
-        'data' => $pendaftar,
-        'berkas' => $berkas
-    ], 201);
-}
 
     public function show($id)
     {

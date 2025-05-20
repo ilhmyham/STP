@@ -274,7 +274,7 @@ export default function Home() {
         "Data berhasil dikirim:",
         response.data
       );
-      // alert("Data berhasil disimpan!");
+      alert("Data berhasil disimpan!");
       router.push(
         `/admin/infopendaftar/tambahdata/sunting/${response.data.data.id}`
       );

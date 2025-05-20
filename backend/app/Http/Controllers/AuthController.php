@@ -27,29 +27,31 @@ class AuthController extends Controller
 
     // login API (email, password)
     public function login(Request $request)
-    {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required'
-        ]);
+{
+    $request->validate([
+        'email' => 'required|email',
+        'password' => 'required'
+    ]);
 
-        if (!Auth::attempt($request->only('email', 'password'))) {
-            return response()->json([
-                'status' => false,
-                'message' => 'invalid credentials'
-            ]);
-        }
-
-        $user = Auth::user();
-        $token = $user->createToken('my Token')->plainTextToken;
-
+    if (!Auth::attempt($request->only('email', 'password'))) {
         return response()->json([
-            'status' => true,
-            'message' => 'user logged in',
-            'token' => $token,
-            'role' => $user->role // <<< tambah ini
+            'status' => false,
+            'message' => 'invalid credentials'
         ]);
     }
+
+    $user = Auth::user();
+    $token = $user->createToken('my Token')->plainTextToken;
+
+    return response()->json([
+        'status' => true,
+        'message' => 'user logged in',
+        'token' => $token,
+        'role' => $user->role,
+        'user_id' => $user->id, // ✅ tambahkan ini
+    ]);
+}
+
 
     // profil API
     public function profile()

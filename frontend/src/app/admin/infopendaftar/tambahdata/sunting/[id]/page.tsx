@@ -47,6 +47,7 @@ interface PesertaData {
   email: string;
   email_kedua: string;
   tanggal: string;
+  tanggal_selesai: string;
 
   pendaftar?: PendaftarData;
 }
@@ -133,6 +134,7 @@ export default function Home({
       email_kedua: "",
       bidang_peminatan_id: "",
       tanggal: "",
+      tanggal_selesai: "",
     });
 
   // Unwrap params dengan use()
@@ -167,6 +169,14 @@ export default function Home({
                 .toISOString()
                 .split("T")[0]
             : "",
+          tanggal_selesai:
+            pesertaData.tanggal_selesai
+              ? new Date(
+                  pesertaData.tanggal_selesai
+                )
+                  .toISOString()
+                  .split("T")[0]
+              : "",
         });
       } catch (error) {
         console.error(
@@ -392,6 +402,21 @@ export default function Home({
                     type='date'
                     name='tanggal'
                     value={formData.tanggal}
+                    onChange={handleChange}
+                    className='w-full px-4 py-2 border rounded-md border-gray-300 text-gray-400'
+                  />
+                </div>
+
+                <div>
+                  <label className='block text-sm font-medium text-gray-700 mb-1'>
+                    Tanggal Selesai Magang
+                  </label>
+                  <input
+                    type='date'
+                    name='tanggal_selesai}'
+                    value={
+                      formData.tanggal_selesai
+                    }
                     onChange={handleChange}
                     className='w-full px-4 py-2 border rounded-md border-gray-300 text-gray-400'
                   />

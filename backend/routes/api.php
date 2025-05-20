@@ -26,9 +26,9 @@ Route::put('pendaftars/{id}/update-status', [PendaftarController::class, 'update
 Route::apiResource('pesertas', PesertaController::class);
 
 
-Route::post('berkas-peserta', [BerkasPesertaController::class, 'store']);
-Route::get('berkas-peserta/{id}', [BerkasPesertaController::class, 'show']);
-Route::put('berkas-peserta/{id}', [BerkasPesertaController::class, 'update']);
+// Route::post('berkas-peserta', [BerkasPesertaController::class, 'store']);
+// Route::get('berkas-peserta/{id}', [BerkasPesertaController::class, 'show']);
+// Route::put('berkas-peserta/{id}', [BerkasPesertaController::class, 'update']);
 
 
 Route::post('surat-balasan', [SuratBalasanMagangController::class, 'store']);
