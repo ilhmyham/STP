@@ -58,6 +58,14 @@ class PendaftarController extends Controller
             ], 422);
         }
 
+        // Cek apakah user sudah pernah daftar
+        if (Pendaftar::where('user_id', $request->user_id)->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Kamu sudah pernah mengisi formulir pendaftaran.',
+            ], 400);
+        }
+
         // Ambil semua data kecuali file
         $pendaftarData = $request->except(['cv', 'surat_rekomendasi', 'proposal', 'dok_pendukung']);
 
