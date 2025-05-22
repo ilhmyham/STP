@@ -110,7 +110,7 @@ class PendaftarController extends Controller
 
     public function show($id)
     {
-        $pendaftar = Pendaftar::with('berkas')->find($id);
+        $pendaftar = Pendaftar::with('berkas', 'jenjangPendidikan', 'bidangPeminatan')->find($id);
 
         if (!$pendaftar) {
             return response()->json([
