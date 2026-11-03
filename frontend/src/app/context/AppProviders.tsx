@@ -194,7 +194,7 @@ export const AppProvider = ({
   );
 };
 
-export const myAppHook = () => {
+export const useMyApp = () => {
   const context = useContext(AppContext);
   if (!context) {
     throw new Error(

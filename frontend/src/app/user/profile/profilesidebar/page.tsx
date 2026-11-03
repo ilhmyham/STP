@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { myAppHook } from "@/app/context/AppProviders";
+import { useMyApp } from "@/app/context/AppProviders";
 
 type UserData = {
   nama: string;
@@ -18,7 +18,7 @@ export default function ProfileSidebar() {
     useState<UserData | null>(null);
   const [isLoading, setIsLoading] =
     useState(true);
-  const { logout, authToken } = myAppHook();
+  const { logout, authToken } = useMyApp();
 
   useEffect(() => {
     const fetchUserData = async () => {

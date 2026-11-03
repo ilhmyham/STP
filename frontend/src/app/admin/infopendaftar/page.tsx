@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button/page";
-import { Sidebar } from "../sidebar/page"; // pastikan path-nya sesuai struktur proyekmu
+import Sidebar from "@/components/Sidebar"; // pastikan path-nya sesuai struktur proyekmu
 import { useRouter } from "next/navigation";
 import ConfirmationModal from "@/components/popup/confirm/page";
 import { PendaftarService } from "@/service/api";
@@ -64,7 +64,7 @@ const getDivisiName = (
   );
 };
 
-export const InternshipDetail = () => {
+const InternshipDetail = () => {
   const params = useParams();
   const id = params?.id;
   const [data, setData] =

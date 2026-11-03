@@ -1,6 +1,6 @@
 import Footer from "@/components/footer/page"
 import { getDokumen } from "@/lib/dokumen"
-import { DocumentCard } from "@/app/user/dokumen/dokumen/page"
+import DocumentCard from "@/components/DocumentCard"
 import Navbar from "@/components/navbar/page"
 
 export default async function Dokumen() {

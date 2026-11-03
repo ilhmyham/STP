@@ -1,5 +1,5 @@
-import { Sidebar } from "../sidebar/page";
-import { Dashboard } from "./dashboard/page";
+import Sidebar from "@/components/Sidebar";
+import UserDashboard from "@/components/UserDashboard";
 
 export default function Home() {
   return (
@@ -10,7 +10,7 @@ export default function Home() {
       <main className="flex-1 p-10 ml-64">
         <h2 className="text-2xl font-bold mb-6 text-black">Data Peserta Magang</h2>
 
-        <Dashboard />
+        <UserDashboard />
       </main>
     </div>
   );

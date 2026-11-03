@@ -1,6 +1,6 @@
 "use client";
 
-import { myAppHook } from "@/app/context/AppProviders";
+import { useMyApp } from "@/app/context/AppProviders";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Loader from "./Loader";
@@ -11,7 +11,7 @@ interface ProtectRouteProps {
 }
 
 export const ProtectRoute = ({ children, allowedRoles }: ProtectRouteProps) => {
-  const { authToken, isLoading } = myAppHook();
+  const { authToken, isLoading } = useMyApp();
   const router = useRouter();
 
   useEffect(() => {

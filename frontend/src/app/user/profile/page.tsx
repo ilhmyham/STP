@@ -1,12 +1,15 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import Footer from "@/components/footer/page";
 import Navbar from "@/components/navbar/page";
 import ProfileSidebar from "@/app/user/profile/profilesidebar/page";
 import Userinfo from "./userinfo/page";
 
 export default function Profil() {
+  const router = useRouter();
+
   const handleLogoutClick = () => {
     // Add any logout logic here (e.g., clearing tokens)
     // For example:

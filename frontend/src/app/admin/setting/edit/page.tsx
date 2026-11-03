@@ -1,10 +1,10 @@
 "use client";
 import React, { useState } from "react";
-import { Sidebar } from "../../sidebar/page";
+import Sidebar from "@/components/Sidebar";
 import { useRouter } from "next/navigation";
 import Link from 'next/link';
 
-export const Edit = () => {
+const Edit = () => {
   const [formData, setFormData] = useState({
     name: "Theresia Pasingki Sollu",
     email: "aabb@gmail.com",

@@ -10,7 +10,7 @@ import {
 } from "next/navigation";
 import ConfirmationModal from "@/components/popup/simpan/page";
 import { PendaftarService } from "@/service/api";
-import { Sidebar } from "@/app/admin/sidebar/page";
+import Sidebar from "@/components/Sidebar";
 import axios from "axios";
 
 interface PendaftarDetail {

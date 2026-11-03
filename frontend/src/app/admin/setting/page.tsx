@@ -1,6 +1,6 @@
 
-import { Sidebar } from "../sidebar/page";
-import { Card } from "./card/page";
+import Sidebar from "@/components/Sidebar";
+import SettingCard from "@/components/SettingCard";
 
 export default function Home() {
   return (
@@ -10,7 +10,7 @@ export default function Home() {
       {/* Main Content */}
       <main className="flex-1 p-10 ml-64">
         <h2 className="text-2xl font-bold mb-6 text-black">Pengaturan Akun</h2>
-        <Card />
+        <SettingCard />
 
       </main>
     </div>

@@ -11,9 +11,9 @@ import {
   useParams,
 } from "next/navigation";
 import ConfirmationModal from "@/components/popup/simpan/page";
-import { Sidebar } from "@/app/admin/sidebar/page";
+import Sidebar from "@/components/Sidebar";
 
-export interface PendaftarData {
+interface PendaftarData {
   id_pendaftar: number;
   nama: string;
   tempat_lahir: string;

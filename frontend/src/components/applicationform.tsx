@@ -264,10 +264,11 @@ export default function ApplicationForm() {
         console.error("Formulir gagal dikirim");
         alert("Formulir gagal dikirim.");
       }
-    } catch (error: any) {
-      if (error.response) {
-        const status = error.response.status;
-        const data = error.response.data;
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response: { status: number; data: { errors?: Record<string, string[]> } } };
+        const status = axiosError.response.status;
+        const data = axiosError.response.data;
 
         if (status === 422 && data.errors) {
           // ✅ Validasi Laravel

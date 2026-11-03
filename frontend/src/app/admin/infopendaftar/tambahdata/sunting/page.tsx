@@ -1,5 +1,5 @@
 "use client";
-import { Sidebar } from "../../../sidebar/page";
+import Sidebar from "@/components/Sidebar";
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button/page";
 import { useRouter } from "next/navigation";

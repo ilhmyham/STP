@@ -3,7 +3,7 @@
 import React, { useState } from "react"; // <-- ini sudah benar
 import Image from "next/image";
 import { Button } from "@/components/ui/button/page";
-import { Sidebar } from "../../sidebar/page"; // pastikan path-nya sesuai struktur proyekmu
+import Sidebar from "@/components/Sidebar"; // pastikan path-nya sesuai struktur proyekmu
 import { useRouter } from "next/navigation";
 import ConfirmationModal from "@/components/popup/confirm/page";
 
@@ -19,7 +19,7 @@ type UploadedFiles = {
   dokumenPendukung: UploadedFile;
 };
 
-export const InternshipDetail = () => {
+const InternshipDetail = () => {
   const uploadedFiles: UploadedFiles = {
     cv: {
       name: "CV_Theresia.pdf",

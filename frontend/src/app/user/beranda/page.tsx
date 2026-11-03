@@ -4,14 +4,14 @@ import Link from "next/link";
 import FAQAccordion from "@/components/faq";
 import Footer from "@/components/footer/page";
 import Navbar from "@/components/navbar/page";
-import { myAppHook } from "@/app/context/AppProviders";
+import { useMyApp } from "@/app/context/AppProviders";
 import { useRouter } from "next/navigation"
 
 import React, { useEffect, useState } from "react";
 
 export default function Beranda() {
 
-  const {isLoading, authToken} = myAppHook()
+  const {isLoading, authToken} = useMyApp()
     const router = useRouter()
     // const fileRef = React.useRef<HTMLInputElement>(null)
     // const [products, setProducts] = useState<ProductType[]>([])

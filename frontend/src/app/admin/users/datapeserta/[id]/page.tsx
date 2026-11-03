@@ -9,7 +9,7 @@ import { useParams } from "next/navigation"; // Untuk mengambil ID dari URL path
 import axios from "axios";
 import { Button } from "@/components/ui/button/page";
 import { useRouter } from "next/navigation";
-import { Sidebar } from "@/app/admin/sidebar/page"; // Pastikan path-nya sesuai dengan struktur proyekmu
+import Sidebar from "@/components/Sidebar"; // Pastikan path-nya sesuai dengan struktur proyekmu
 import ConfirmationModal from "@/components/popup/confirm/page"; // Kalau ada modal konfirmasi
 
 type UploadedFile = {
@@ -96,7 +96,7 @@ interface Peserta {
   sertifikat_magang: sertifikat;
 }
 
-export const InternshipDetail = () => {
+const InternshipDetail = () => {
   const fileInputRef =
     useRef<HTMLInputElement | null>(null); // Ref untuk input file
   const [fileName, setFileName] =

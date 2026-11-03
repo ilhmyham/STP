@@ -4,10 +4,19 @@ import type React from "react";
 import { useState, useEffect } from "react";
 import SuccessModal from "@/components/popup/signup/page";
 import Link from "next/link";
-import { myAppHook } from "@/app/context/AppProviders";
+import { useMyApp } from "@/app/context/AppProviders";
 import { useRouter, usePathname } from "next/navigation";
 
-const FormInput = ({ label, type, name, value, onChange, error }: any) => (
+interface FormInputProps {
+  label: string;
+  type: string;
+  name: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  error: string;
+}
+
+const FormInput = ({ label, type, name, value, onChange, error }: FormInputProps) => (
   <div className="space-y-2">
     <label htmlFor={name} className="block text-[#3b4f81] font-medium">
       {label}
@@ -36,7 +45,7 @@ export default function SignupForm() {
 
   const router = useRouter();
   const pathname = usePathname();
-  const { login, register, authToken, isLoading } = myAppHook();
+  const { login, register, authToken, isLoading } = useMyApp();
 
   const [errors, setErrors] = useState({
     username: "",
