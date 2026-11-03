@@ -21,3 +21,20 @@
 
 - Komponen lain di `/user/informasi` juga masih memakai data mock/placeholder
   (`Status`, `Supervisor`, `Divisi`).
+
+## Auth guard (refactor)
+
+- Satu provider (`features/auth/components/AuthProvider`) dan satu guard
+  (`features/auth/components/AuthGuard`) di root layout; `AppProvider` bersarang di
+  `admin/layout` dihapus.
+- Provider tidak mengarahkan saat hidrasi; guard yang mengarahkan setelah sesi terbaca.
+- **Children tidak dirender saat unauthorized** (sebelumnya konten sempat
+  tampil lalu redirect). Saat loading/redirect yang dirender hanya `Loader`.
+- Tanpa sesi: `/admin/*` -> `/admin/login`, `/user/*` -> `/user/auth`.
+  Role salah -> halaman utama role masing-masing.
+- `/user/login` sekarang redirect ke `/user/auth`; `/admin/login` disambungkan
+  ke `auth.service` (role non-admin ditolak, sesi tidak disimpan).
+- Kredensial salah menampilkan "Email atau password salah" lewat state error
+  yang sudah ada.
+- `middleware.ts` dihapus. Sesi tetap di cookie `authToken`/`userRole`/`userId`
+  selama 7 hari.

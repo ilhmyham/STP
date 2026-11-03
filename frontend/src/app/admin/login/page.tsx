@@ -2,10 +2,10 @@
 
 import type React from "react"
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useMyApp } from "@/app/context/AppProviders"
 
 export default function LoginPage() {
-  const router = useRouter()
+  const { login } = useMyApp()
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
@@ -50,20 +50,10 @@ export default function LoginPage() {
     setIsLoading(true)
 
     try {
-      const response = await fetch("/api/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, password }),
-      })
+      const result = await login(username, password, { requiredRole: "admin" })
 
-      const result = await response.json()
-
-      if (result.success) {
-        router.push("/")
-      } else {
-        setError(result.message || "Login gagal")
+      if (!result.ok) {
+        setError(result.message || "Email atau password salah")
       }
     } catch (err) {
       console.error(err)

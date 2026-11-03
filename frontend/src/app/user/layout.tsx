@@ -1,9 +1,8 @@
-import { ProtectRoute } from "@/components/ProtectRoute";
-
-export default function UserLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <ProtectRoute allowedRoles={['user']}>
-      {children}
-    </ProtectRoute>
-  );
+export default function UserLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  // Guard tunggal dipasang di root layout (features/auth/components/AuthGuard).
+  return <>{children}</>;
 }

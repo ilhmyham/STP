@@ -56,3 +56,31 @@ Cukup ubah `frontend/src/service/timeline.service.ts`:
 
 Konversi `status` -> `statusPendaftaran` (diterima = `true`, selain itu
 `false`) sudah terpusat di service tersebut.
+
+## Auth
+
+### Logout belum mencabut token Sanctum
+
+`AuthController@logout` ada, tetapi tidak didaftarkan di `routes/api.php`.
+Frontend hanya menghapus cookie `authToken`/`userRole`/`userId`. Token Sanctum
+tetap valid sampai kedaluwarsa atau dicabut manual.
+
+Backend perlu endpoint logout, misalnya:
+
+```http
+POST /api/logout
+Authorization: Bearer <token>
+```
+
+```php
+$request->user()->currentAccessToken()->delete();
+```
+
+### Login gagal sebaiknya bukan HTTP 200
+
+`POST /api/login` saat kredensial salah membalas HTTP **200** dengan
+`{ "status": false, "message": "invalid credentials" }`. Frontend harus
+menebak kegagalan dari body, dan interceptor 401 tidak pernah terpicu.
+
+Sebaiknya balas **401** (atau 422) dengan pesan yang sama, agar penanganan
+error konsisten. Backend tidak diubah dari sisi frontend.
