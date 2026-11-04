@@ -33,6 +33,7 @@
 | PUT/PATCH | `/api/pendaftars/{id}` | publik | `PendaftarController@update` | **bermasalah** (lihat catatan) |
 | DELETE | `/api/pendaftars/{id}` | publik | `PendaftarController@destroy` | jalan |
 | PUT | `/api/pendaftars/{id}/update-status` | publik | `PendaftarController@updateStatus` | jalan |
+| GET | `/api/me/pendaftar` | sanctum | `PendaftarController@me` | jalan (`data: null` bila belum mendaftar) |
 | GET | `/api/pesertas` | publik | `PesertaController@index` | jalan |
 | POST | `/api/pesertas` | publik | `PesertaController@store` | jalan (nama field bermasalah) |
 | GET | `/api/pesertas/{id}` | publik | `PesertaController@show` | jalan |
@@ -50,8 +51,8 @@
 | GET | `/api/admin-only` | sanctum + role:admin | closure | jalan |
 | GET | `/api/user-only` | sanctum + role:user | closure | jalan |
 
-Catatan besar: **seluruh CRUD bisnis bersifat publik**. Hanya dua route uji (`/admin-only`, `/user-only`)
-yang memakai middleware. `BerkasPesertaController` ada, tetapi route-nya dikomentari di `routes/api.php`.
+Catatan besar: **seluruh CRUD bisnis bersifat publik**. Hanya `/me/pendaftar` dan dua route uji
+(`/admin-only`, `/user-only`) yang memakai middleware. `BerkasPesertaController` ada, tetapi route-nya dikomentari di `routes/api.php`.
 `AuthController@profile` dan `@logout` ada, tetapi tidak pernah didaftarkan.
 
 ## Auth
@@ -172,6 +173,17 @@ POST `/api/bidangPeminatans`: request `{ "nama_bidang": "Data" }` → `201 <obje
 `show/update/destroy` kedua controller masih kosong (respons `200` tanpa body).
 
 ## Pendaftar
+
+### GET /api/me/pendaftar (auth:sanctum)
+
+Data pendaftar milik user yang sedang login, dengan eager load yang sama seperti
+`index` (`berkas`, `bidangPeminatan`, `jenjangPendidikan`, `peserta`). Bila user
+belum mengisi form, respons tetap `200` agar frontend bisa membedakan
+"belum mendaftar" dari error:
+
+```json
+{ "success": true, "data": null }
+```
 
 ### GET /api/pendaftars
 

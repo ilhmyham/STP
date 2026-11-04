@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\SuratPenilaian;
+use App\Support\UploadedDocument;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -31,21 +32,26 @@ class SuratPenilaianController extends Controller
     {
         $validated = $request->validate([
             'id_peserta' => 'required|exists:pesertas,id',
-            'surat_penilaian' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'surat_penilaian' => 'nullable|file|extensions:pdf,doc,docx,jpg,jpeg,png|max:10240',
         ]);
 
         try {
             // Menyimpan dokumen di storage publik
-            $surat_penilaian = $request->file('surat_penilaian') ? $request->file('surat_penilaian')->store('berkas_peserta/surat_penilaian', 'public') : null;
+            $surat_penilaian = UploadedDocument::store($request->file('surat_penilaian'), 'berkas_peserta/surat_penilaian');
 
 
-            $berkasPeserta = SuratPenilaian::create([
+            $berkasPeserta = SuratPenilaian::firstOrNew([
                 'id_peserta' => $validated['id_peserta'],
-                'surat_penilaian' => $surat_penilaian
             ]);
 
+            if ($surat_penilaian) {
+                $berkasPeserta->surat_penilaian = $surat_penilaian;
+            }
+
+            $berkasPeserta->save();
+
             return response()->json([
-                'message' => 'Berkas Peserta berhasil ditambahkan.',
+                'message' => 'Berkas Peserta berhasil disimpan.',
                 'data' => $berkasPeserta
             ], 201);
         } catch (\Exception $e) {
@@ -90,7 +96,7 @@ class SuratPenilaianController extends Controller
     {
         // Validasi file upload
         $validated = $request->validate([
-            'surat_penilaian' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'surat_penilaian' => 'nullable|file|extensions:pdf,doc,docx,jpg,jpeg,png|max:10240',
         ]);
 
         try {
@@ -100,13 +106,12 @@ class SuratPenilaianController extends Controller
             // ----------- Update surat_penilaian -----------
             if ($request->hasFile('surat_penilaian')) {
                 $file = $request->file('surat_penilaian');
-                $fileName = uniqid() . '-' . $file->getClientOriginalName();
 
                 if ($berkasPeserta->surat_penilaian && Storage::disk('public')->exists($berkasPeserta->surat_penilaian)) {
                     Storage::disk('public')->delete($berkasPeserta->surat_penilaian);
                 }
 
-                $path = $file->storeAs('berkas_peserta/surat_penilaian', $fileName, 'public');
+                $path = UploadedDocument::store($file, 'berkas_peserta/surat_penilaian');
                 $berkasPeserta->surat_penilaian = $path;
                 $pesanUpdate[] = 'surat_penilaian diperbarui';
                 // Log::info('surat_penilaian berhasil diperbarui: ' . $path);

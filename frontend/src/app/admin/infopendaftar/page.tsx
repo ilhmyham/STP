@@ -98,7 +98,7 @@ const InternshipDetail = () => {
         if (!id) return;
 
         const fetchedData =
-          await PendaftarService.getById(
+          await PendaftarService.getById<PendaftarDetail>(
             Number(id)
           );
         setData(fetchedData);

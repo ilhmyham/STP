@@ -44,10 +44,10 @@ class PendaftarController extends Controller
             'durasi' => 'required|string',
             'periodic_mulai' => 'required|date',
             'bidang_peminatan' => 'required|integer|exists:bidang_peminatans,id',
-            'cv' => 'required|file|mimes:pdf|max:2048',
-            'surat_rekomendasi' => 'required|file|mimes:pdf|max:2048',
-            'proposal' => 'required|file|mimes:pdf|max:2048',
-            'dok_pendukung' => 'nullable|file|mimes:pdf|max:2048',
+            'cv' => 'required|file|mimes:pdf|max:10240',
+            'surat_rekomendasi' => 'required|file|mimes:pdf|max:10240',
+            'proposal' => 'required|file|mimes:pdf|max:10240',
+            'dok_pendukung' => 'nullable|file|mimes:pdf|max:10240',
             'status' => 'sometimes|in:uncheck,diterima,ditolak',
         ]);
 
@@ -99,6 +99,28 @@ class PendaftarController extends Controller
         ], 201);
     }
 
+
+    /**
+     * Pendaftar milik user yang sedang login.
+     * Mengembalikan `data: null` (bukan 404) bila user belum mengisi form,
+     * agar frontend dapat membedakan "belum mendaftar" dari error.
+     */
+    public function me(Request $request)
+    {
+        $pendaftar = Pendaftar::with([
+            'berkas',
+            'bidangPeminatan',
+            'jenjangPendidikan',
+            'peserta',
+        ])
+            ->where('user_id', $request->user()->id)
+            ->first();
+
+        return response()->json([
+            'success' => true,
+            'data' => $pendaftar,
+        ]);
+    }
 
     public function show($id)
     {

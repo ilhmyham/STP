@@ -8,12 +8,10 @@ import {
   Loader2,
 } from "lucide-react";
 import Link from "next/link";
-
-type ApplicationStatus =
-  | "diterima"
-  | "ditolak"
-  | "diproses"
-  | "loading";
+import {
+  statusPenerimaanService,
+  type ApplicationStatus,
+} from "@/service/statusPenerimaan.service";
 
 interface ApplicationStatusProps {
   initialStatus?: ApplicationStatus;
@@ -35,11 +33,11 @@ export default function Status({
 
       try {
         setStatus("loading");
-        const response = await fetch(
-          `/api/statuspenerimaan/${applicationId}`
-        );
-        const data = await response.json();
-        setStatus(data.status);
+        const nextStatus =
+          await statusPenerimaanService.getStatus(
+            applicationId
+          );
+        setStatus(nextStatus);
       } catch (error) {
         console.error(
           "Error fetching application status:",

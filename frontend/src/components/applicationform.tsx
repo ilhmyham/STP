@@ -1,8 +1,6 @@
 "use client";
 
-import Cookies from "js-cookie";
 import type React from "react";
-import axios from "axios";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -17,8 +15,18 @@ import {
 import StepIndicator from "@/components/stepindicator";
 import CustomFileInput from "@/components/customfileinput";
 import ConfirmationModal from "@/components/popup/confirmdata/page";
+import { getSession } from "@/features/auth/lib/session";
+import { usePendaftarStatus } from "@/features/pendaftaran/hooks/usePendaftarStatus";
+import { getApiError } from "@/lib/api-error";
+import { PendaftarService } from "@/service/api";
+import {
+  bidangPeminatanService,
+  jenjangPendidikanService,
+} from "@/service/master.service";
 
 export default function ApplicationForm() {
+  const { refresh: refreshPendaftar } =
+    usePendaftarStatus();
   const [jenjangOptions, setJenjangOptions] =
     useState<
       { id: number; pendidikan: string }[]
@@ -77,18 +85,14 @@ export default function ApplicationForm() {
   useEffect(() => {
     const fetchOptions = async () => {
       try {
-        const [jenjangRes, bidangRes] =
+        const [jenjang, bidang] =
           await Promise.all([
-            axios.get(
-              `${process.env.NEXT_PUBLIC_API_URL}/jenjangPendidikans`
-            ),
-            axios.get(
-              `${process.env.NEXT_PUBLIC_API_URL}/bidangPeminatans`
-            ),
+            jenjangPendidikanService.getAll(),
+            bidangPeminatanService.getAll(),
           ]);
 
-        setJenjangOptions(jenjangRes.data);
-        setBidangOptions(bidangRes.data);
+        setJenjangOptions(jenjang);
+        setBidangOptions(bidang);
       } catch (err) {
         console.log(err);
       } finally {
@@ -103,7 +107,7 @@ export default function ApplicationForm() {
   }, []);
 
   useEffect(() => {
-    const uid = Cookies.get("userId");
+    const uid = getSession()?.userId;
     if (uid) {
       setFormData((prev) => ({
         ...prev,
@@ -247,45 +251,50 @@ export default function ApplicationForm() {
       );
 
     try {
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/pendaftars`,
-        formDataToSend,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Accept: "application/json",
-          },
-        }
-      );
+      const response =
+        await PendaftarService.create<unknown>(
+          formDataToSend
+        );
 
-      if (response.data.success) {
+      if (response.success) {
         setShowSuccessPopup(true);
+        // Perbarui status pendaftar agar menu data-dependent
+        // langsung muncul tanpa reload halaman.
+        void refreshPendaftar();
       } else {
         console.error("Formulir gagal dikirim");
         alert("Formulir gagal dikirim.");
       }
     } catch (error: unknown) {
-      if (error && typeof error === 'object' && 'response' in error) {
-        const axiosError = error as { response: { status: number; data: { errors?: Record<string, string[]> } } };
-        const status = axiosError.response.status;
-        const data = axiosError.response.data;
+      const apiError = getApiError(error);
 
-        if (status === 422 && data.errors) {
+      if (apiError) {
+        if (
+          apiError.status === 422 &&
+          apiError.errors
+        ) {
           // ✅ Validasi Laravel
           console.error(
             "Validasi Gagal:",
-            data.errors
+            apiError.errors
           );
           alert(
             "Validasi gagal:\n" +
-              JSON.stringify(data.errors, null, 2)
+              JSON.stringify(
+                apiError.errors,
+                null,
+                2
+              )
           );
         } else {
           // ✅ Error bukan validasi
-          console.error("Server error:", data);
+          console.error(
+            "Server error:",
+            apiError.data
+          );
           alert(
             "Terjadi kesalahan pada server:\n" +
-              JSON.stringify(data, null, 2)
+              JSON.stringify(apiError.data, null, 2)
           );
         }
       } else {

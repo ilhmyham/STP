@@ -17,6 +17,10 @@ use App\Http\Controllers\SuratPenilaianController;
 
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
+
+// Data pendaftar milik user yang sedang login (null bila belum mengisi form).
+Route::get('me/pendaftar', [PendaftarController::class, 'me'])
+    ->middleware('auth:sanctum');
 Route::apiresource('users', UserController::class);
 Route::apiresource('jenjangPendidikans', JenjangPendidikanController::class);
 Route::apiResource('bidangPeminatans', BidangPeminatanController::class);

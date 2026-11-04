@@ -2,6 +2,16 @@
 
 use Illuminate\Support\Str;
 
+/*
+ * PHP 8.5 men-deprecate PDO::MYSQL_ATTR_SSL_CA dan menggantinya dengan
+ * Pdo\Mysql::ATTR_SSL_CA. Gunakan konstanta baru bila tersedia agar notice
+ * deprecation tidak ikut tercetak di body respons API, dengan fallback untuk
+ * PHP < 8.4.
+ */
+$mysqlSslCaAttribute = defined('Pdo\Mysql::ATTR_SSL_CA')
+    ? \Pdo\Mysql::ATTR_SSL_CA
+    : PDO::MYSQL_ATTR_SSL_CA;
+
 return [
 
     /*
@@ -58,7 +68,7 @@ return [
             'strict' => true,
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
-                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+                $mysqlSslCaAttribute => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
         ],
 
@@ -78,7 +88,7 @@ return [
             'strict' => true,
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
-                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+                $mysqlSslCaAttribute => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
         ],
 

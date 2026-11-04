@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
+import { supervisorService } from "@/service/supervisor.service";
 
 interface SupervisorData {
   name: string;
@@ -24,8 +25,8 @@ export default function Supervisor() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch(`/api/supervisor/${id}`);
-        const json = await res.json();
+        const json =
+          await supervisorService.getByPeserta(id);
         setData(json);
       } catch (err) {
         console.error("Gagal ambil data supervisor:", err);

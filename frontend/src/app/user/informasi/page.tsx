@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Footer from "@/components/footer/page";
 import Navbar from "@/components/navbar/page";
+import { PendaftarGate } from "@/features/pendaftaran/components/PendaftarGate";
 import Status from "@/components/Status";
 import Supervisor from "@/app/user/informasi/supervisordata/page";
 import Divisi from "@/app/user/informasi/divisi/page";
@@ -44,18 +45,20 @@ export default function Informasi() {
   return (
     <div>
       <Navbar />
-      <div className="gap-[28px] pt-[70px] pb-[225px] flex flex-col items-center">
-        <p className="text-[20px] md:text-[28px] font-semibold text-[#29334D]">
-          Informasi & Status Magang
-        </p>
-        <Status />
+      <PendaftarGate>
+        <div className="gap-[28px] pt-[70px] pb-[225px] flex flex-col items-center">
+          <p className="text-[20px] md:text-[28px] font-semibold text-[#29334D]">
+            Informasi & Status Magang
+          </p>
+          <Status />
 
-        <div className="flex flex-col md:flex-row gap-[27px] w-[300px] md:w-[600px] lg:w-[900px] items-center">
-          <Supervisor />
-          <Divisi />
+          <div className="flex flex-col md:flex-row gap-[27px] w-[300px] md:w-[600px] lg:w-[900px] items-center">
+            <Supervisor />
+            <Divisi />
+          </div>
+          {timeline && <TimelineMagang {...timeline} />}
         </div>
-        {timeline && <TimelineMagang {...timeline} />}
-      </div>
+      </PendaftarGate>
       <Footer />
     </div>
   );

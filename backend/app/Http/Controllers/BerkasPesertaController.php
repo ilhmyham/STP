@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\BerkasPeserta;
+use App\Support\UploadedDocument;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log; // Tambahkan Log untuk debugging
@@ -16,32 +17,42 @@ class BerkasPesertaController extends Controller
         // Validasi data yang diterima
         $validated = $request->validate([
             'id_peserta' => 'required|exists:pesertas,id',
-            'surat_balasan' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
-            'surat_penilaian' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
-            'sertifikat_magang' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'surat_balasan' => 'nullable|file|extensions:pdf,doc,docx,jpg,jpeg,png|max:10240',
+            'surat_penilaian' => 'nullable|file|extensions:pdf,doc,docx,jpg,jpeg,png|max:10240',
+            'sertifikat_magang' => 'nullable|file|extensions:pdf,doc,docx,jpg,jpeg,png|max:10240',
         ]);
 
         try {
             // Menyimpan dokumen di storage publik
-            $surat_balasan = $request->file('surat_balasan') ? $request->file('surat_balasan')->store('berkas_peserta/surat_balasan', 'public') : null;
-            $surat_penilaian = $request->file('surat_penilaian') ? $request->file('surat_penilaian')->store('berkas_peserta/surat_penilaian', 'public') : null;
-            $sertifikat_magang = $request->file('sertifikat_magang') ? $request->file('sertifikat_magang')->store('berkas_peserta/sertifikat_magang', 'public') : null;
+            $surat_balasan = UploadedDocument::store($request->file('surat_balasan'), 'berkas_peserta/surat_balasan');
+            $surat_penilaian = UploadedDocument::store($request->file('surat_penilaian'), 'berkas_peserta/surat_penilaian');
+            $sertifikat_magang = UploadedDocument::store($request->file('sertifikat_magang'), 'berkas_peserta/sertifikat_magang');
 
             // Debugging: Log file paths
             Log::info('File surat_balasan: ' . $surat_balasan);
             Log::info('File surat_penilaian: ' . $surat_penilaian);
             Log::info('File sertifikat_magang: ' . $sertifikat_magang);
 
-            // Membuat data baru
-            $berkasPeserta = BerkasPeserta::create([
+            // Membuat atau memperbarui data (relasi Peserta memakai hasOne,
+            // jadi satu peserta hanya boleh punya satu baris berkas).
+            $berkasPeserta = BerkasPeserta::firstOrNew([
                 'id_peserta' => $validated['id_peserta'],
-                'surat_balasan' => $surat_balasan,
-                'surat_penilaian' => $surat_penilaian,
-                'sertifikat_magang' => $sertifikat_magang,
             ]);
 
+            if ($surat_balasan) {
+                $berkasPeserta->surat_balasan = $surat_balasan;
+            }
+            if ($surat_penilaian) {
+                $berkasPeserta->surat_penilaian = $surat_penilaian;
+            }
+            if ($sertifikat_magang) {
+                $berkasPeserta->sertifikat_magang = $sertifikat_magang;
+            }
+
+            $berkasPeserta->save();
+
             return response()->json([
-                'message' => 'Berkas Peserta berhasil ditambahkan.',
+                'message' => 'Berkas Peserta berhasil disimpan.',
                 'data' => $berkasPeserta
             ], 201);
         } catch (\Exception $e) {
@@ -88,9 +99,9 @@ if ($request->hasFile('sertifikat_magang')) {
 }
     // Validasi file upload
     $validated = $request->validate([
-        'surat_balasan' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
-        'surat_penilaian' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
-        'sertifikat_magang' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+        'surat_balasan' => 'nullable|file|extensions:pdf,doc,docx,jpg,jpeg,png|max:10240',
+        'surat_penilaian' => 'nullable|file|extensions:pdf,doc,docx,jpg,jpeg,png|max:10240',
+        'sertifikat_magang' => 'nullable|file|extensions:pdf,doc,docx,jpg,jpeg,png|max:10240',
     ]);
 
     try {
@@ -100,13 +111,12 @@ if ($request->hasFile('sertifikat_magang')) {
         // ----------- Update surat_balasan -----------
         if ($request->hasFile('surat_balasan')) {
             $file = $request->file('surat_balasan');
-            $fileName = uniqid() . '-' . $file->getClientOriginalName();
 
             if ($berkasPeserta->surat_balasan && Storage::disk('public')->exists($berkasPeserta->surat_balasan)) {
                 Storage::disk('public')->delete($berkasPeserta->surat_balasan);
             }
 
-            $path = $file->storeAs('berkas_peserta/surat_balasan', $fileName, 'public');
+            $path = UploadedDocument::store($file, 'berkas_peserta/surat_balasan');
             $berkasPeserta->surat_balasan = $path;
             $pesanUpdate[] = 'surat_balasan diperbarui';
             // Log::info('surat_balasan berhasil diperbarui: ' . $path);
@@ -115,13 +125,12 @@ if ($request->hasFile('sertifikat_magang')) {
         // ----------- Update surat_penilaian -----------
         if ($request->hasFile('surat_penilaian')) {
             $file = $request->file('surat_penilaian');
-            $fileName = uniqid() . '-' . $file->getClientOriginalName();
 
             if ($berkasPeserta->surat_penilaian && Storage::disk('public')->exists($berkasPeserta->surat_penilaian)) {
                 Storage::disk('public')->delete($berkasPeserta->surat_penilaian);
             }
 
-            $path = $file->storeAs('berkas_peserta/surat_penilaian', $fileName, 'public');
+            $path = UploadedDocument::store($file, 'berkas_peserta/surat_penilaian');
             $berkasPeserta->surat_penilaian = $path;
             $pesanUpdate[] = 'surat_penilaian diperbarui';
             // Log::info('surat_penilaian berhasil diperbarui: ' . $path);
@@ -130,13 +139,12 @@ if ($request->hasFile('sertifikat_magang')) {
         // ----------- Update sertifikat_magang -----------
         if ($request->hasFile('sertifikat_magang')) {
             $file = $request->file('sertifikat_magang');
-            $fileName = uniqid() . '-' . $file->getClientOriginalName();
 
             if ($berkasPeserta->sertifikat_magang && Storage::disk('public')->exists($berkasPeserta->sertifikat_magang)) {
                 Storage::disk('public')->delete($berkasPeserta->sertifikat_magang);
             }
 
-            $path = $file->storeAs('berkas_peserta/sertifikat_magang', $fileName, 'public');
+            $path = UploadedDocument::store($file, 'berkas_peserta/sertifikat_magang');
             $berkasPeserta->sertifikat_magang = $path;
             $pesanUpdate[] = 'sertifikat_magang diperbarui';
             // Log::info('sertifikat_magang berhasil diperbarui: ' . $path);

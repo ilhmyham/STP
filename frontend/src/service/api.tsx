@@ -1,19 +1,12 @@
-import axios from "axios";
-
-const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
-  headers: {
-    "Content-Type": "application/json",
-    // Tambahkan header lain jika diperlukan (seperti Authorization)
-  },
-});
+import apiClient from "@/lib/api-client";
+import type { ApiEnvelope } from "./types";
 
 export const PendaftarService = {
-  async getAll() {
+  async getAll<T>(): Promise<T[]> {
     try {
-      const response = await api.get(
-        "/pendaftars"
-      );
+      const response = await apiClient.get<
+        ApiEnvelope<T[]>
+      >("/pendaftars");
       return response.data.data;
     } catch (error) {
       console.error(
@@ -24,11 +17,11 @@ export const PendaftarService = {
     }
   },
 
-  async getById(id: number) {
+  async getById<T>(id: number): Promise<T> {
     try {
-      const response = await api.get(
-        `/pendaftars/${id}`
-      );
+      const response = await apiClient.get<
+        ApiEnvelope<T>
+      >(`/pendaftars/${id}`);
       return response.data.data;
     } catch (error) {
       console.error(
@@ -39,13 +32,25 @@ export const PendaftarService = {
     }
   },
 
-  async updateStatus(id: number, status: string) {
+  async create<T>(
+    payload: FormData
+  ): Promise<ApiEnvelope<T>> {
+    const response = await apiClient.post<
+      ApiEnvelope<T>
+    >("/pendaftars", payload);
+    return response.data;
+  },
+
+  async updateStatus<T>(
+    id: number,
+    status: string
+  ): Promise<T> {
     try {
-      const response = await api.put(
-        `/pendaftars/${id}/update-status`,
-        { status }
-      );
-      console.log(response);
+      const response = await apiClient.put<
+        ApiEnvelope<T>
+      >(`/pendaftars/${id}/update-status`, {
+        status,
+      });
       return response.data.data;
     } catch (error) {
       console.error(
@@ -57,11 +62,11 @@ export const PendaftarService = {
     }
   },
 
-  async getPesertaById(id: number) {
+  async getPesertaById<T>(id: number): Promise<T> {
     try {
-      const response = await api.get(
-        `/pesertas/${id}`
-      );
+      const response = await apiClient.get<
+        ApiEnvelope<T>
+      >(`/pesertas/${id}`);
       return response.data.data;
     } catch (error) {
       console.error(

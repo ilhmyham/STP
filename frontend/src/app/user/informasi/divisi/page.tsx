@@ -2,11 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-
-interface PenempatanData {
-  divisi: string;
-  tanggalMulai: string;
-}
+import {
+  penempatanService,
+  type PenempatanData,
+} from "@/service/penempatan.service";
 
 function formatTanggalIndo(tanggal: string): string {
   const bulanIndo = [
@@ -35,8 +34,8 @@ export default function Divisi() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch(`/api/penempatan/${id}`);
-        const json = await res.json();
+        const json =
+          await penempatanService.getByPeserta(id);
         setData(json);
       } catch (err) {
         console.error("Gagal ambil data penempatan:", err);
